@@ -2,7 +2,6 @@ import React from 'react';
 import { FlipperPlugin, FlexColumn, Button, MultiLineInput, FlexRow, Input, ErrorBlock } from 'flipper';
 import SidebarComponent from './components/SidebarComponent';
 import SearchComponent from './components/SearchComponent';
-import DispatchComponent from './components/DispatchComponent/DispatchComponent';
 
 type State = {
   selectedId: string;
@@ -19,6 +18,7 @@ export type Row = {
   time: string;
   before: object;
   after: object;
+  storeName: string;
 };
 
 type PersistedState = {
@@ -36,9 +36,12 @@ export type DispatchAction = {
   value: any;
 };
 
+const defaultSelection = { title: 'All', id: '0' };
+
 export default class ReduxViewer extends FlipperPlugin<State, any, any> {
   state = {
     selectedId: '',
+    selectedStore: '0',
     error: '',
   };
 
@@ -67,45 +70,41 @@ export default class ReduxViewer extends FlipperPlugin<State, any, any> {
     this.setState({ selectedId: key[0] });
   };
 
-  clear = () => {
-    this.setState({ selectedId: '' });
-    this.props.setPersistedState({ actions: [] });
-  };
-
-  handleDispatch = (payload: DispatchAction) => {
-    this.setState({ error: null });
-
-    try {
-      this.client.call('applyPatch', payload).then((res) => {
-        if (res.error) {
-          this.setState({ error: res.message });
-        }
-      });
-    } catch (ex) {
-      if (ex instanceof SyntaxError) {
-        // json format wrong
-        console.group('WrongJsonFormat');
-        console.error(ex);
-        console.groupEnd();
-      } else {
-        console.group('DispatchError');
-        console.error(ex);
-        console.groupEnd();
-      }
-
-      this.setState({ error: ex });
+  onStoreSelect = (storeName: string) => {
+    if (storeName !== this.state.selectedStore) {
+      this.setState({ selectedStore: storeName });
     }
   };
 
+  clear = () => {
+    this.setState({ selectedId: '', selectedStore: '0' });
+    this.props.setPersistedState({ actions: [] });
+  };
+
   render() {
-    const { error, selectedId } = this.state;
-    const { actions } = this.props.persistedState;
+    const { error, selectedId, selectedStore } = this.state;
+    const actions: Row[] = this.props.persistedState.actions;
+
+    const actionsToDisplay =
+      selectedStore !== '0' ? actions.filter(({ storeName }) => storeName === this.state.selectedStore) : actions;
+
+    const uniqueStores = Array.from(
+      new Set(actions.map(({ storeName }) => storeName).filter((storeName) => Boolean(storeName))),
+    );
+
+    const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
 
     return (
       <FlexColumn grow={true}>
         {error && <ErrorBlock error={error}></ErrorBlock>}
-        <DispatchComponent onDispatch={this.handleDispatch} />
-        <SearchComponent actions={actions} onPress={this.onRowHighlighted} onClear={this.clear} />
+        <SearchComponent
+          actions={actionsToDisplay}
+          onPress={this.onRowHighlighted}
+          onClear={this.clear}
+          onFilterSelect={this.onStoreSelect}
+          storeSelectionList={storeSelectionList}
+          selectedStore={selectedStore}
+        />
         <SidebarComponent selectedId={selectedId} actions={actions} />
       </FlexColumn>
     );

@@ -1,13 +1,17 @@
 import React, { memo, useMemo } from 'react';
-import { SearchableTable, Button, Text, TableBodyRow } from 'flipper';
+import { SearchableTable, Button, Text, TableBodyRow, FlexColumn, Panel } from 'flipper';
+import { DataList } from 'flipper-plugin';
 import { Row } from '../..';
 
 const columns = {
   time: {
     value: 'Time',
   },
+  store: {
+    value: 'Store',
+  },
   action: {
-    value: 'Action Type',
+    value: 'Action',
   },
   took: {
     value: 'Took',
@@ -24,9 +28,19 @@ interface IProps {
   actions: Row[];
   onPress: (key: string[]) => void;
   onClear: () => void;
+  onFilterSelect: (newSelection: string) => void;
+  storeSelectionList: { title: string; id: string }[];
+  selectedStore: string;
 }
 
-const SearchComponent: React.FC<IProps> = ({ actions, onPress, onClear }) => {
+const SearchComponent: React.FC<IProps> = ({
+  actions,
+  onPress,
+  onClear,
+  onFilterSelect,
+  storeSelectionList,
+  selectedStore,
+}) => {
   const rows = useMemo(
     () =>
       actions.map(
@@ -34,6 +48,9 @@ const SearchComponent: React.FC<IProps> = ({ actions, onPress, onClear }) => {
           columns: {
             time: {
               value: <Text>{row.time}</Text>,
+            },
+            store: {
+              value: <Text>{row.storeName}</Text>,
             },
             action: {
               value: <Text>{row.action.type}</Text>,
@@ -51,19 +68,29 @@ const SearchComponent: React.FC<IProps> = ({ actions, onPress, onClear }) => {
   );
 
   return (
-    <SearchableTable
-      key={100}
-      rowLineHeight={28}
-      floating={false}
-      multiline={true}
-      columnSizes={columnSizes}
-      columns={columns}
-      onRowHighlighted={onPress}
-      multiHighlight={false}
-      rows={rows}
-      stickyBottom={true}
-      actions={<Button onClick={onClear}>Clear</Button>}
-    />
+    <FlexColumn grow={true}>
+      <Panel floating={false} heading='Filter'>
+        <DataList
+          items={storeSelectionList}
+          onSelect={onFilterSelect}
+          selection={selectedStore}
+          style={{ minHeight: '200px' }}
+        />
+      </Panel>
+      <SearchableTable
+        key={100}
+        rowLineHeight={28}
+        floating={false}
+        multiline={true}
+        columnSizes={columnSizes}
+        columns={columns}
+        onRowHighlighted={onPress}
+        multiHighlight={false}
+        rows={rows}
+        stickyBottom={true}
+        actions={<Button onClick={onClear}>Clear</Button>}
+      />
+    </FlexColumn>
   );
 };
 
