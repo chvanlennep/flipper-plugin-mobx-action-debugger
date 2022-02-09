@@ -1,8 +1,10 @@
 # Mobx Debugger Plugin for Flipper
 
-![screenshot of the plugin](http://i.imgur.com/EHdtxfE.png)
+This project was forked from: https://github.com/khorark/flipper-plugin-mobx-debugger
 
-`flipper-plugin-mobx-debugger` allows you read React Native mobx logs inside [Flipper](https://fbflipper.com/) now:
+Note: readme is not yet up to date
+
+`flipper-plugin-mobx-action-debugger` allows you read React Native mobx logs inside [Flipper](https://fbflipper.com/):
 
 - Action
 - State comparison
