@@ -2,28 +2,51 @@
   "$schema": "https://fbflipper.com/schemas/plugin-package/v2.json",
   "name": "flipper-plugin-mobx-action-debugger",
   "id": "mobx-action-debugger",
+  "version": "1.0.0",
   "pluginType": "client",
-  "version": "1.0.1",
   "main": "dist/bundle.js",
   "flipperBundlerEntry": "src/index.tsx",
   "license": "MIT",
-  "keywords": ["flipper-plugin", "mobx"],
+  "keywords": [
+    "flipper-plugin"
+  ],
   "icon": "apps",
   "title": "Mobx Action Debugger",
   "scripts": {
     "lint": "flipper-pkg lint",
-    "prepack": "flipper-pkg lint && flipper-pkg bundle"
+    "prepack": "flipper-pkg lint && flipper-pkg bundle",
+    "build": "flipper-pkg bundle",
+    "watch": "flipper-pkg bundle --watch",
+    "test": "jest --no-watchman"
   },
   "peerDependencies": {
-    "flipper": "latest"
+    "@emotion/styled": "latest",
+    "flipper-plugin": "^0.131.1",
+    "antd": "latest",
+    "react": "latest",
+    "react-dom": "latest"
   },
   "devDependencies": {
-    "@types/react": "16.9.35",
-    "flipper": "latest",
+    "@babel/preset-react": "latest",
+    "@babel/preset-typescript": "latest",
+    "@emotion/styled": "latest",
+    "@testing-library/react": "latest",
+    "@types/jest": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "antd": "latest",
+    "flipper-plugin": "latest",
     "flipper-pkg": "latest",
-    "prettier": "2.0.5"
+    "jest": "latest",
+    "jest-mock-console": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest"
   },
-  "dependencies": {
-    "flipper-plugin": "^0.123.0"
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFiles": [
+      "<rootDir>/jest-setup.ts"
+    ]
   }
 }

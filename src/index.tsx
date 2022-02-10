@@ -1,112 +1,103 @@
-import React from 'react';
-import { FlipperPlugin, FlexColumn, Button, MultiLineInput, FlexRow, Input, ErrorBlock } from 'flipper';
-import SidebarComponent from './components/SidebarComponent';
-import SearchComponent from './components/SearchComponent';
+import React, { useState } from "react";
+import {
+  PluginClient,
+  usePlugin,
+  createState,
+  useValue,
+  Layout,
+} from "flipper-plugin";
+import { ErrorBlock } from "flipper";
+import { SearchComponent } from "./SearchComponent";
+import { SidebarComponent } from "./SidebarComponent";
+import { Row } from "./types";
 
-type State = {
-  selectedId: string;
-  error: string | null;
+type Events = {
+  action: Row;
+  init: Row;
 };
 
-export type Row = {
-  id: string;
-  action: {
-    type: string;
-    payload: any;
+const defaultSelection = { title: "All", id: "0" };
+
+// Read more: https://fbflipper.com/docs/tutorial/js-custom#creating-a-first-plugin
+// API: https://fbflipper.com/docs/extending/flipper-plugin#pluginclient
+export function plugin(client: PluginClient<Events, {}>) {
+  const data = createState<Row[]>([], { persist: "data" });
+
+  client.onMessage("action", (newData) => {
+    data.update((draft) => {
+      draft.push(newData);
+    });
+  });
+
+  client.onMessage("init", (newData) => {
+    data.update(() => {
+      data.set([newData]);
+    });
+  });
+
+  const clear = () => {
+    data.set([]);
   };
-  took: string;
-  time: string;
-  before: object;
-  after: object;
-  storeName: string;
-};
 
-type PersistedState = {
-  actions: Row[];
-};
-
-export enum TabLabel {
-  state = 'StateTree',
-  diff = 'Diff',
+  return { data, clear };
 }
 
-export type DispatchAction = {
-  op: 'replace' | 'add' | 'remove';
-  path: string;
-  value: any;
-};
+// Read more: https://fbflipper.com/docs/tutorial/js-custom#building-a-user-interface-for-the-plugin
+// API: https://fbflipper.com/docs/extending/flipper-plugin#react-hooks
+export function Component() {
+  const instance = usePlugin(plugin);
+  const actions = useValue(instance.data);
 
-const defaultSelection = { title: 'All', id: '0' };
+  const [{ selectedId, selectedStore, error }, setState] = useState<{
+    selectedId: string;
+    selectedStore: string;
+    error: string;
+  }>({ selectedId: "", selectedStore: "0", error: "" });
 
-export default class ReduxViewer extends FlipperPlugin<State, any, any> {
-  state = {
-    selectedId: '',
-    selectedStore: '0',
-    error: '',
+  const onRowHighlighted = (key: string[]) => {
+    setState((old) => ({ ...old, selectedId: key[0] }));
   };
 
-  static defaultPersistedState: PersistedState = {
-    actions: [],
-  };
-
-  static persistedStateReducer(persistedState: PersistedState, method: string, payload: Row) {
-    switch (method) {
-      case 'init':
-        return {
-          ...persistedState,
-          actions: [payload],
-        };
-      case 'action':
-        return {
-          ...persistedState,
-          actions: [...persistedState.actions, payload],
-        };
-      default:
-        return persistedState;
-    }
-  }
-
-  onRowHighlighted = (key: string[]) => {
-    this.setState({ selectedId: key[0] });
-  };
-
-  onStoreSelect = (storeName: string) => {
-    if (storeName !== this.state.selectedStore) {
-      this.setState({ selectedStore: storeName });
+  const onStoreSelect = (storeName: string) => {
+    if (storeName !== selectedStore) {
+      setState((old) => ({ ...old, selectedStore: storeName }));
     }
   };
 
-  clear = () => {
-    this.setState({ selectedId: '', selectedStore: '0' });
-    this.props.setPersistedState({ actions: [] });
+  const clearData = () => {
+    instance.clear();
+    setState({ selectedId: "", selectedStore: "0", error: "" });
   };
 
-  render() {
-    const { error, selectedId, selectedStore } = this.state;
-    const actions: Row[] = this.props.persistedState.actions;
+  const actionsToDisplay =
+    selectedStore !== "0"
+      ? actions.filter(({ storeName }) => storeName === selectedStore)
+      : actions;
 
-    const actionsToDisplay =
-      selectedStore !== '0' ? actions.filter(({ storeName }) => storeName === this.state.selectedStore) : actions;
+  const uniqueStores = Array.from(
+    new Set(
+      actions
+        .map(({ storeName }) => storeName)
+        .filter((storeName) => storeName),
+    ),
+  );
 
-    const uniqueStores = Array.from(
-      new Set(actions.map(({ storeName }) => storeName).filter((storeName) => storeName)),
-    );
+  const storeSelectionList = [defaultSelection].concat(
+    uniqueStores.map((name) => ({ id: name, title: name })),
+  );
 
-    const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
-
-    return (
-      <FlexColumn grow={true}>
-        {error && <ErrorBlock error={error}></ErrorBlock>}
-        <SearchComponent
-          actions={actionsToDisplay}
-          onPress={this.onRowHighlighted}
-          onClear={this.clear}
-          onFilterSelect={this.onStoreSelect}
-          storeSelectionList={storeSelectionList}
-          selectedStore={selectedStore}
-        />
-        <SidebarComponent selectedId={selectedId} actions={actions} />
-      </FlexColumn>
-    );
-  }
+  return (
+    <Layout.Container grow={true}>
+      {error && <ErrorBlock error={error}></ErrorBlock>}
+      <SearchComponent
+        actions={actionsToDisplay}
+        onPress={onRowHighlighted}
+        onClear={clearData}
+        onFilterSelect={onStoreSelect}
+        storeSelectionList={storeSelectionList}
+        selectedStore={selectedStore}
+      />
+      <SidebarComponent selectedId={selectedId} actions={actions} />
+    </Layout.Container>
+  );
 }

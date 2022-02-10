@@ -1,27 +1,28 @@
-import React, { memo, useMemo } from 'react';
-import { SearchableTable, Button, Text, TableBodyRow, FlexColumn, Panel } from 'flipper';
-import { DataList } from 'flipper-plugin';
-import { Row } from '../..';
+import React, { useMemo } from "react";
+import { SearchableTable, TableBodyRow } from "flipper";
+import { Button, Typography } from "antd";
+import { DataList, Layout, Panel } from "flipper-plugin";
+import { Row } from "./types";
 
 const columns = {
   time: {
-    value: 'Time',
+    value: "Time",
   },
   store: {
-    value: 'Store',
+    value: "Store",
   },
   action: {
-    value: 'Action',
+    value: "Action",
   },
   took: {
-    value: 'Took',
+    value: "Took",
   },
 };
 
 const columnSizes = {
-  time: '20%',
-  action: '35%',
-  took: '15%',
+  time: "20%",
+  action: "35%",
+  took: "15%",
 };
 
 interface IProps {
@@ -33,7 +34,7 @@ interface IProps {
   selectedStore: string;
 }
 
-const SearchComponent: React.FC<IProps> = ({
+export const SearchComponent: React.FC<IProps> = ({
   actions,
   onPress,
   onClear,
@@ -47,16 +48,16 @@ const SearchComponent: React.FC<IProps> = ({
         (row): TableBodyRow => ({
           columns: {
             time: {
-              value: <Text>{row.time}</Text>,
+              value: <Typography.Text>{row.time}</Typography.Text>,
             },
             store: {
-              value: <Text>{row.storeName}</Text>,
+              value: <Typography.Text>{row.storeName}</Typography.Text>,
             },
             action: {
-              value: <Text>{row.action.type}</Text>,
+              value: <Typography.Text>{row.action.type}</Typography.Text>,
             },
             took: {
-              value: <Text>{row.took}</Text>,
+              value: <Typography.Text>{row.took}</Typography.Text>,
             },
           },
           key: row.id,
@@ -68,13 +69,13 @@ const SearchComponent: React.FC<IProps> = ({
   );
 
   return (
-    <FlexColumn grow={true}>
-      <Panel floating={false} heading='Filter'>
+    <Layout.Container grow={true}>
+      <Panel title="Filter">
         <DataList
           items={storeSelectionList}
           onSelect={onFilterSelect}
           selection={selectedStore}
-          style={{ minHeight: '200px' }}
+          style={{ minHeight: "200px" }}
         />
       </Panel>
       <SearchableTable
@@ -90,8 +91,6 @@ const SearchComponent: React.FC<IProps> = ({
         stickyBottom={true}
         actions={<Button onClick={onClear}>Clear</Button>}
       />
-    </FlexColumn>
+    </Layout.Container>
   );
 };
-
-export default memo(SearchComponent);
