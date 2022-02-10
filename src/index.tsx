@@ -89,7 +89,7 @@ export default class ReduxViewer extends FlipperPlugin<State, any, any> {
       selectedStore !== '0' ? actions.filter(({ storeName }) => storeName === this.state.selectedStore) : actions;
 
     const uniqueStores = Array.from(
-      new Set(actions.map(({ storeName }) => storeName).filter((storeName) => Boolean(storeName))),
+      new Set(actions.map(({ storeName }) => storeName).filter((storeName) => storeName)),
     );
 
     const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));

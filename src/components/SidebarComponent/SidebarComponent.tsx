@@ -1,4 +1,4 @@
-import React, { memo, useState, useMemo, useCallback } from 'react';
+import React, { memo, useState, useMemo } from 'react';
 import { DetailSidebar, Panel, ManagedDataInspector, Tabs, Tab } from 'flipper';
 import { Row, TabLabel } from '../..';
 

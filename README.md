@@ -1,20 +1,17 @@
-# Mobx Debugger Plugin for Flipper
+# Flipper Plugin To Debug Mobx Actions
 
-This project was forked from: https://github.com/khorark/flipper-plugin-mobx-debugger
-
-Note: readme is not yet up to date- these instructions will not work at present without new react native plugin.
-
-`flipper-plugin-mobx-action-debugger` allows you read React Native mobx logs inside [Flipper](https://fbflipper.com/):
+`flipper-plugin-mobx-action-debugger` allows you read React Native mobx action logs from [Flipper](https://fbflipper.com/):
 
 - Action
 - State comparison
+- Support for multiple MobX stores
 
 ## Get Started
 
-1. Install [mobx-flipper](https://github.com/khorark/mobx-flipper) middleware and `react-native-flipper` in your React Native app:
+1. Install [mobx-action-flipper](https://github.com/chvanlennep/mobx-action-flipper) middleware and `react-native-flipper` in your React Native app:
 
 ```bash
-yarn add mobx-flipper react-native-flipper
+yarn add mobx-action-flipper react-native-flipper
 # for iOS
 cd ios && pod install
 ```
@@ -24,36 +21,21 @@ cd ios && pod install
 - MobX
 
 ```javascript
-import { spy } from 'mobx';
-import { createMobxDebugger } from 'flipper-mobx';
+import { debugMobxActions } from 'mobx-action-flipper';
 
-const store = new Store(); // your store
+const firstStore = new FirstStore(); // Mobx store
+const secondStore = new SecondStore(); // Any number of stores can be passed into function
 
-if (__DEV__) {
-  spy(createMobxDebugger(store));
-}
+debugMobxActions({ firstStore, secondStore });
 ```
 
-- MobX-state-tree
-
-```javascript
-import { addMiddleware } from 'mobx-state-tree';
-import { createMstDebugger } from 'flipper-mobx';
-
-const store = new Store(); // your store
-
-if (__DEV__) {
-  addMiddleware(store, createMstDebugger(store));
-}
-```
-
-3. Install [flipper-plugin-mobx-debugger](https://github.com/khorark/flipper-plugin-mobx-debugger) in Flipper desktop client:
+3. Install [flipper-plugin-mobx-action-debugger](https://github.com/chvanlennep/flipper-plugin-mobx-action-debugger) in Flipper desktop client:
 
 ```
-Manage Plugins > Install Plugins > search "mobx-debugger" > Install
+Manage Plugins > Install Plugins > search "mobx-action-debugger" > Install
 ```
 
-4. Start your app, then you should be able to see Mobx Debugger on your Flipper app
+4. Start your app and you should be able to see the debugger in Flipper.
 
 ## Acknowledgement
 
