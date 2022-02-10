@@ -1,28 +1,29 @@
-import React, { useMemo } from "react";
-import { SearchableTable, TableBodyRow } from "flipper";
-import { Button, Typography } from "antd";
-import { DataList, Layout, Panel } from "flipper-plugin";
-import { Row } from "./types";
+import React, { useMemo } from 'react';
+import { SearchableTable, TableBodyRow } from 'flipper';
+import { Button, Typography } from 'antd';
+import { DataList, Layout, Panel } from 'flipper-plugin';
+import { Row } from './types';
 
 const columns = {
   time: {
-    value: "Time",
+    value: 'Time',
   },
   store: {
-    value: "Store",
+    value: 'Store',
   },
   action: {
-    value: "Action",
+    value: 'Action',
   },
   took: {
-    value: "Took",
+    value: 'Took',
   },
 };
 
 const columnSizes = {
-  time: "20%",
-  action: "35%",
-  took: "15%",
+  time: '20%',
+  store: '20%',
+  action: '40%',
+  took: '20%',
 };
 
 interface IProps {
@@ -69,26 +70,26 @@ export const SearchComponent: React.FC<IProps> = ({
   );
 
   return (
-    <Layout.Container grow={true}>
-      <Panel title="Filter">
+    <Layout.Container grow>
+      <Panel title='Filter'>
         <DataList
           items={storeSelectionList}
           onSelect={onFilterSelect}
           selection={selectedStore}
-          style={{ minHeight: "200px" }}
+          style={{ minHeight: '200px' }}
         />
       </Panel>
       <SearchableTable
         key={100}
         rowLineHeight={28}
         floating={false}
-        multiline={true}
+        multiline
         columnSizes={columnSizes}
         columns={columns}
         onRowHighlighted={onPress}
         multiHighlight={false}
         rows={rows}
-        stickyBottom={true}
+        stickyBottom
         actions={<Button onClick={onClear}>Clear</Button>}
       />
     </Layout.Container>

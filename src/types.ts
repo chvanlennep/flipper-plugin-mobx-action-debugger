@@ -1,3 +1,8 @@
+export type Events = {
+  action: Row;
+  init: Row;
+};
+
 export type Row = {
   id: string;
   action: {
@@ -5,6 +10,7 @@ export type Row = {
     payload: any;
   };
   took: string;
+  startTime: string;
   time: string;
   before: object;
   after: object;
@@ -12,6 +18,6 @@ export type Row = {
 };
 
 export enum TabLabel {
-  state = "StateTree",
-  diff = "Diff",
+  state = 'StateTree',
+  diff = 'Diff',
 }
