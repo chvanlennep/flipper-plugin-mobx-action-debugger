@@ -76,7 +76,7 @@ export const SearchComponent: React.FC<IProps> = ({
           items={storeSelectionList}
           onSelect={onFilterSelect}
           selection={selectedStore}
-          style={{ minHeight: '200px' }}
+          style={{ minHeight: '230px' }}
         />
       </Panel>
       <SearchableTable

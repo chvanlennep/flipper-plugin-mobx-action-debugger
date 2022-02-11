@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
-import { Row, TabLabel } from "./types";
-import { DataInspector, DetailSidebar, Panel, Tabs, Tab } from "flipper-plugin";
+import React, { useState, useMemo } from 'react';
+import { Row, TabLabel } from './types';
+import { DataInspector, DetailSidebar, Panel, Tabs, Tab } from 'flipper-plugin';
 
 interface IProps {
   selectedId: string;
@@ -9,13 +9,8 @@ interface IProps {
 
 export const SidebarComponent: React.FC<IProps> = ({ selectedId, actions }) => {
   const [activeTab, setActiveTab] = useState<string>(TabLabel.state);
-  const data = useMemo(
-    () =>
-      selectedId === ""
-        ? actions.slice(-1)[0]
-        : actions.find((v) => v.id === selectedId),
-    [selectedId, actions],
-  );
+  const hasNoUsefulData = !actions.length || (actions.length === 1 && !actions[0].storeName);
+  const data = useMemo(() => actions.find((row) => row.id === selectedId), [selectedId, hasNoUsefulData]);
 
   let after: any = {};
   let before: any = {};
@@ -27,25 +22,16 @@ export const SidebarComponent: React.FC<IProps> = ({ selectedId, actions }) => {
 
   return (
     <DetailSidebar>
-      <Panel title="Action">
+      <Panel title='Action'>
         <DataInspector data={action} collapsed={true} expandRoot={true} />
       </Panel>
-      <Panel title="State">
-        <Tabs
-          defaultActiveKey={activeTab}
-          onChange={setActiveTab}
-          activeKey={activeTab}
-        >
+      <Panel title='State'>
+        <Tabs defaultActiveKey={activeTab} onChange={setActiveTab} activeKey={activeTab}>
           <Tab tab={TabLabel.state}>
             <DataInspector data={after} collapsed={true} expandRoot={true} />
           </Tab>
           <Tab tab={TabLabel.diff}>
-            <DataInspector
-              diff={before}
-              data={after}
-              collapsed={true}
-              expandRoot={true}
-            />
+            <DataInspector diff={before} data={after} collapsed={true} expandRoot={true} />
           </Tab>
         </Tabs>
       </Panel>

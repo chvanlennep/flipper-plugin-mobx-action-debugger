@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { PluginClient, usePlugin, createState, useValue, Layout } from 'flipper-plugin';
-import { ErrorBlock } from 'flipper';
 import { SearchComponent } from './SearchComponent';
 import { SidebarComponent } from './SidebarComponent';
 import { Events, Row } from './types';
@@ -46,11 +45,10 @@ export function Component() {
   const instance = usePlugin(plugin);
   const actions = useValue(instance.data);
 
-  const [{ selectedId, selectedStore, error }, setState] = useState<{
+  const [{ selectedId, selectedStore }, setState] = useState<{
     selectedId: string;
     selectedStore: string;
-    error: string;
-  }>({ selectedId: '', selectedStore: '0', error: '' });
+  }>({ selectedId: '', selectedStore: '0' });
 
   const onRowHighlighted = (key: string[]) => {
     setState((old) => ({ ...old, selectedId: key[0] }));
@@ -64,7 +62,7 @@ export function Component() {
 
   const clearData = () => {
     instance.clear();
-    setState({ selectedId: '', selectedStore: '0', error: '' });
+    setState({ selectedId: '', selectedStore: '0' });
   };
 
   const actionsToDisplay =
@@ -76,7 +74,6 @@ export function Component() {
 
   return (
     <Layout.Container grow={true}>
-      {error && <ErrorBlock error={error}></ErrorBlock>}
       <SearchComponent
         actions={actionsToDisplay}
         onPress={onRowHighlighted}
