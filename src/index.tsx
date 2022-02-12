@@ -84,6 +84,9 @@ export function Component() {
 
   useEffect(() => {
     const listener = (newRows: Row[]) => {
+      if (asyncStoragePresent) {
+        return;
+      }
       if (newRows.some(({ isAsyncStoragePresent }) => isAsyncStoragePresent)) {
         setState((old) => ({ ...old, asyncStoragePresent: true }));
       }
@@ -92,7 +95,7 @@ export function Component() {
     return () => {
       instance.data.unsubscribe(listener);
     };
-  }, []);
+  }, [asyncStoragePresent]);
 
   return (
     <Layout.Container grow={true}>
