@@ -8,7 +8,11 @@
   "flipperBundlerEntry": "src/index.tsx",
   "license": "MIT",
   "keywords": [
-    "flipper-plugin"
+    "flipper-plugin",
+    "react native",
+    "mobx",
+    "flipper",
+    "debugger"
   ],
   "icon": "apps",
   "title": "Mobx Action Debugger",
