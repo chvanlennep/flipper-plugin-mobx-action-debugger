@@ -50,6 +50,4 @@ Manage Plugins > Install Plugins > search "mobx-action-debugger" > Install
 
 ## Acknowledgement
 
-## Acknowledgement
-
 This plugin was forked from [flipper-plugin-mobx-debugger](https://github.com/khorark/flipper-plugin-mobx-debugger).
