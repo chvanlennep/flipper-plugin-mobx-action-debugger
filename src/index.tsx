@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PluginClient, usePlugin, createState, useValue, Layout } from 'flipper-plugin';
 import { SearchComponent } from './SearchComponent';
 import { SidebarComponent } from './SidebarComponent';
-import { Events, Row } from './types';
+import { Events, Requests, Row } from './types';
 
 const defaultSelection = { title: 'All', id: '0' };
 
 // Read more: https://fbflipper.com/docs/tutorial/js-custom#creating-a-first-plugin
 // API: https://fbflipper.com/docs/extending/flipper-plugin#pluginclient
-export function plugin(client: PluginClient<Events, {}>) {
+export function plugin(client: PluginClient<Events, Requests>) {
   const data = createState<Row[]>([], { persist: 'data' });
 
   client.onMessage('action', (newData) => {
@@ -33,10 +33,19 @@ export function plugin(client: PluginClient<Events, {}>) {
   });
 
   const clear = () => {
-    data.set([]);
+    const firstItem = data.get()[0];
+    data.set(firstItem ? [firstItem] : []);
   };
 
-  return { data, clear };
+  const clearPersistedState = () => {
+    client.send('clearStorage', undefined);
+  };
+
+  return {
+    data,
+    clear,
+    clearPersistedState,
+  };
 }
 
 // Read more: https://fbflipper.com/docs/tutorial/js-custom#building-a-user-interface-for-the-plugin
@@ -45,10 +54,11 @@ export function Component() {
   const instance = usePlugin(plugin);
   const actions = useValue(instance.data);
 
-  const [{ selectedId, selectedStore }, setState] = useState<{
+  const [{ selectedId, selectedStore, asyncStoragePresent }, setState] = useState<{
     selectedId: string;
     selectedStore: string;
-  }>({ selectedId: '', selectedStore: '0' });
+    asyncStoragePresent: boolean;
+  }>({ selectedId: '', selectedStore: '0', asyncStoragePresent: false });
 
   const onRowHighlighted = (key: string[]) => {
     setState((old) => ({ ...old, selectedId: key[0] }));
@@ -62,7 +72,7 @@ export function Component() {
 
   const clearData = () => {
     instance.clear();
-    setState({ selectedId: '', selectedStore: '0' });
+    setState((old) => ({ ...old, selectedStore: '0', selectedId: '' }));
   };
 
   const actionsToDisplay =
@@ -72,6 +82,18 @@ export function Component() {
 
   const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
 
+  useEffect(() => {
+    const listener = (newRows: Row[]) => {
+      if (newRows.some(({ isAsyncStoragePresent }) => isAsyncStoragePresent)) {
+        setState((old) => ({ ...old, asyncStoragePresent: true }));
+      }
+    };
+    instance.data.subscribe(listener);
+    return () => {
+      instance.data.unsubscribe(listener);
+    };
+  }, []);
+
   return (
     <Layout.Container grow={true}>
       <SearchComponent
@@ -79,6 +101,7 @@ export function Component() {
         onPress={onRowHighlighted}
         onClear={clearData}
         onFilterSelect={onStoreSelect}
+        clearPersistedData={asyncStoragePresent ? instance.clearPersistedState : null}
         storeSelectionList={storeSelectionList}
         selectedStore={selectedStore}
       />

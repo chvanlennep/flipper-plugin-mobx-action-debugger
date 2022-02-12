@@ -3,6 +3,10 @@ export type Events = {
   init: Row;
 };
 
+export type Requests = {
+  clearStorage: () => Promise<any>;
+};
+
 export type Row = {
   id: string;
   action: {
@@ -15,6 +19,7 @@ export type Row = {
   before: object;
   after: object;
   storeName: string;
+  isAsyncStoragePresent?: boolean;
 };
 
 export enum TabLabel {

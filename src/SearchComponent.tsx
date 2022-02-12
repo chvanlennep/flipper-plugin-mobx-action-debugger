@@ -31,6 +31,7 @@ interface IProps {
   onPress: (key: string[]) => void;
   onClear: () => void;
   onFilterSelect: (newSelection: string) => void;
+  clearPersistedData: (() => void) | null;
   storeSelectionList: { title: string; id: string }[];
   selectedStore: string;
 }
@@ -40,6 +41,7 @@ export const SearchComponent: React.FC<IProps> = ({
   onPress,
   onClear,
   onFilterSelect,
+  clearPersistedData,
   storeSelectionList,
   selectedStore,
 }) => {
@@ -90,7 +92,12 @@ export const SearchComponent: React.FC<IProps> = ({
         multiHighlight={false}
         rows={rows}
         stickyBottom
-        actions={<Button onClick={onClear}>Clear</Button>}
+        actions={
+          <>
+            <Button onClick={onClear}>Clear Logs</Button>
+            {clearPersistedData ? <Button onClick={clearPersistedData}>Wipe Persisted Stores</Button> : null}
+          </>
+        }
       />
     </Layout.Container>
   );
