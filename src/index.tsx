@@ -77,7 +77,7 @@ export function Component() {
   const actionsToDisplay =
     selectedStore === '0' ? actions : actions.filter(({ storeName }) => storeName === selectedStore);
 
-  const uniqueStores = Array.from(new Set(actions.map(({ storeName }) => storeName).filter((storeName) => storeName)));
+  const uniqueStores = Array.from(new Set(actions.map(({ storeName }) => storeName).filter(Boolean)));
 
   const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
 
