@@ -1,6 +1,6 @@
 export type Events = {
   action: Row;
-  init: Row;
+  init: Settings;
 };
 
 export type Requests = {
@@ -20,6 +20,10 @@ export type Row = {
   after: object;
   storeName: string;
   isAsyncStoragePresent?: boolean;
+};
+
+export type Settings = {
+  isAsyncStoragePresent: boolean;
 };
 
 export enum TabLabel {

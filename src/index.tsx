@@ -2,14 +2,20 @@ import React, { useState } from 'react';
 import { PluginClient, usePlugin, createState, useValue, Layout } from 'flipper-plugin';
 import { SearchComponent } from './SearchComponent';
 import { SidebarComponent } from './SidebarComponent';
-import { Events, Requests, Row } from './types';
+import { Events, Requests, Row, Settings } from './types';
 
 const defaultSelection = { title: 'All', id: '0' };
 
-// Read more: https://fbflipper.com/docs/tutorial/js-custom#creating-a-first-plugin
 // API: https://fbflipper.com/docs/extending/flipper-plugin#pluginclient
 export function plugin(client: PluginClient<Events, Requests>) {
   const data = createState<Row[]>([], { persist: 'data' });
+  const settings = createState<Settings>({ isAsyncStoragePresent: false });
+
+  client.onMessage('init', ({ isAsyncStoragePresent }) => {
+    settings.update((draft) => {
+      draft.isAsyncStoragePresent = isAsyncStoragePresent;
+    });
+  });
 
   client.onMessage('action', (newData) => {
     data.update((draft) => {
@@ -30,22 +36,23 @@ export function plugin(client: PluginClient<Events, Requests>) {
     data.set([]);
   };
 
-  const clearPersistedState = () => {
+  const clearPersistedState = async () => {
     client.send('clearStorage', undefined);
   };
 
   return {
     data,
+    settings,
     clear,
     clearPersistedState,
   };
 }
 
-// Read more: https://fbflipper.com/docs/tutorial/js-custom#building-a-user-interface-for-the-plugin
 // API: https://fbflipper.com/docs/extending/flipper-plugin#react-hooks
 export function Component() {
   const instance = usePlugin(plugin);
   const actions = useValue(instance.data);
+  const { isAsyncStoragePresent } = useValue(instance.settings);
 
   const [{ selectedId, selectedStore }, setState] = useState<{
     selectedId: string;
@@ -74,8 +81,6 @@ export function Component() {
 
   const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
 
-  const asyncStoragePresent = actions[0]?.isAsyncStoragePresent ?? false;
-
   return (
     <Layout.Container grow={true}>
       <SearchComponent
@@ -83,7 +88,7 @@ export function Component() {
         onPress={onRowHighlighted}
         onClear={clearData}
         onFilterSelect={onStoreSelect}
-        clearPersistedData={asyncStoragePresent ? instance.clearPersistedState : null}
+        clearPersistedData={isAsyncStoragePresent ? instance.clearPersistedState : null}
         storeSelectionList={storeSelectionList}
         selectedStore={selectedStore}
       />

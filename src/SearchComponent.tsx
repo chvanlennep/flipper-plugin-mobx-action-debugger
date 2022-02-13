@@ -1,4 +1,5 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+//@ts-ignore
 import { SearchableTable, TableBodyRow } from 'flipper';
 import { Button, Typography } from 'antd';
 import { DataList, Layout, Panel } from 'flipper-plugin';
@@ -71,6 +72,18 @@ export const SearchComponent: React.FC<IProps> = ({
     [actions],
   );
 
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = () => {
+    if (clearPersistedData) {
+      setLoading(true);
+      clearPersistedData();
+      setTimeout(() => {
+        setLoading(false);
+      }, 500);
+    }
+  };
+
   return (
     <Layout.Container grow>
       <Panel title='Filter'>
@@ -95,7 +108,11 @@ export const SearchComponent: React.FC<IProps> = ({
         actions={
           <>
             <Button onClick={onClear}>Clear Logs</Button>
-            {clearPersistedData ? <Button onClick={clearPersistedData}>Wipe Persisted Stores</Button> : null}
+            {clearPersistedData ? (
+              <Button loading={loading} onClick={handleClick}>
+                Wipe Persisted Stores
+              </Button>
+            ) : null}
           </>
         }
       />
