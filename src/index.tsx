@@ -26,15 +26,8 @@ export function plugin(client: PluginClient<Events, Requests>) {
     });
   });
 
-  client.onMessage('init', (newData) => {
-    data.update((draft) => {
-      draft = [newData];
-    });
-  });
-
   const clear = () => {
-    const firstItem = data.get()[0];
-    data.set(firstItem.action?.type === 'INIT' ? [firstItem] : []);
+    data.set([]);
   };
 
   const clearPersistedState = () => {
