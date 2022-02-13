@@ -24,6 +24,8 @@ export type Row = {
 
 export type Settings = {
   isAsyncStoragePresent: boolean;
+  storeList: { id: string; title: string }[];
+  stores?: string[];
 };
 
 export enum TabLabel {

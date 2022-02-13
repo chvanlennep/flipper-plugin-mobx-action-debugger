@@ -4,16 +4,15 @@ import { SearchComponent } from './SearchComponent';
 import { SidebarComponent } from './SidebarComponent';
 import { Events, Requests, Row, Settings } from './types';
 
-const defaultSelection = { title: 'All', id: '0' };
-
 // API: https://fbflipper.com/docs/extending/flipper-plugin#pluginclient
 export function plugin(client: PluginClient<Events, Requests>) {
   const data = createState<Row[]>([], { persist: 'data' });
-  const settings = createState<Settings>({ isAsyncStoragePresent: false });
+  const settings = createState<Settings>({ isAsyncStoragePresent: false, storeList: [{ title: 'All', id: '0' }] });
 
-  client.onMessage('init', ({ isAsyncStoragePresent }) => {
+  client.onMessage('init', (newSettings) => {
     settings.update((draft) => {
-      draft.isAsyncStoragePresent = isAsyncStoragePresent;
+      draft.isAsyncStoragePresent = newSettings.isAsyncStoragePresent;
+      draft.storeList = draft.storeList.concat(newSettings.stores?.map((name) => ({ id: name, title: name })) ?? []);
     });
   });
 
@@ -52,7 +51,7 @@ export function plugin(client: PluginClient<Events, Requests>) {
 export function Component() {
   const instance = usePlugin(plugin);
   const actions = useValue(instance.data);
-  const { isAsyncStoragePresent } = useValue(instance.settings);
+  const { isAsyncStoragePresent, storeList } = useValue(instance.settings);
 
   const [{ selectedId, selectedStore }, setState] = useState<{
     selectedId: string;
@@ -71,15 +70,11 @@ export function Component() {
 
   const clearData = () => {
     instance.clear();
-    setState((old) => ({ selectedStore: '0', selectedId: '' }));
+    setState({ selectedStore: '0', selectedId: '' });
   };
 
   const actionsToDisplay =
     selectedStore === '0' ? actions : actions.filter(({ storeName }) => storeName === selectedStore);
-
-  const uniqueStores = Array.from(new Set(actions.map(({ storeName }) => storeName).filter(Boolean)));
-
-  const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
 
   return (
     <Layout.Container grow={true}>
@@ -89,7 +84,7 @@ export function Component() {
         onClear={clearData}
         onFilterSelect={onStoreSelect}
         clearPersistedData={isAsyncStoragePresent ? instance.clearPersistedState : null}
-        storeSelectionList={storeSelectionList}
+        storeSelectionList={storeList}
         selectedStore={selectedStore}
       />
       <SidebarComponent selectedId={selectedId} actions={actions} />
