@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { PluginClient, usePlugin, createState, useValue, Layout } from 'flipper-plugin';
 import { SearchComponent } from './SearchComponent';
 import { SidebarComponent } from './SidebarComponent';
@@ -27,14 +27,14 @@ export function plugin(client: PluginClient<Events, Requests>) {
   });
 
   client.onMessage('init', (newData) => {
-    data.update(() => {
-      data.set([newData]);
+    data.update((draft) => {
+      draft = [newData];
     });
   });
 
   const clear = () => {
     const firstItem = data.get()[0];
-    data.set(firstItem ? [firstItem] : []);
+    data.set(firstItem.action?.type === 'INIT' ? [firstItem] : []);
   };
 
   const clearPersistedState = () => {
@@ -54,11 +54,10 @@ export function Component() {
   const instance = usePlugin(plugin);
   const actions = useValue(instance.data);
 
-  const [{ selectedId, selectedStore, asyncStoragePresent }, setState] = useState<{
+  const [{ selectedId, selectedStore }, setState] = useState<{
     selectedId: string;
     selectedStore: string;
-    asyncStoragePresent: boolean;
-  }>({ selectedId: '', selectedStore: '0', asyncStoragePresent: false });
+  }>({ selectedId: '', selectedStore: '0' });
 
   const onRowHighlighted = (key: string[]) => {
     setState((old) => ({ ...old, selectedId: key[0] }));
@@ -72,7 +71,7 @@ export function Component() {
 
   const clearData = () => {
     instance.clear();
-    setState((old) => ({ ...old, selectedStore: '0', selectedId: '' }));
+    setState((old) => ({ selectedStore: '0', selectedId: '' }));
   };
 
   const actionsToDisplay =
@@ -82,20 +81,7 @@ export function Component() {
 
   const storeSelectionList = [defaultSelection].concat(uniqueStores.map((name) => ({ id: name, title: name })));
 
-  useEffect(() => {
-    const listener = (newRows: Row[]) => {
-      if (asyncStoragePresent) {
-        return;
-      }
-      if (newRows.some(({ isAsyncStoragePresent }) => isAsyncStoragePresent)) {
-        setState((old) => ({ ...old, asyncStoragePresent: true }));
-      }
-    };
-    instance.data.subscribe(listener);
-    return () => {
-      instance.data.unsubscribe(listener);
-    };
-  }, [asyncStoragePresent]);
+  const asyncStoragePresent = actions[0]?.isAsyncStoragePresent ?? false;
 
   return (
     <Layout.Container grow={true}>
