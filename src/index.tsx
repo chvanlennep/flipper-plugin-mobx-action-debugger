@@ -7,12 +7,14 @@ import { Events, Requests, Row, Settings } from './types';
 // API: https://fbflipper.com/docs/extending/flipper-plugin#pluginclient
 export function plugin(client: PluginClient<Events, Requests>) {
   const data = createState<Row[]>([], { persist: 'data' });
-  const settings = createState<Settings>({ isAsyncStoragePresent: false, storeList: [{ title: 'All', id: '0' }] });
+  const settings = createState<Settings>({ isAsyncStoragePresent: false, storeList: [] });
 
   client.onMessage('init', (newSettings) => {
     settings.update((draft) => {
       draft.isAsyncStoragePresent = newSettings.isAsyncStoragePresent;
-      draft.storeList = draft.storeList.concat(newSettings.stores?.map((name) => ({ id: name, title: name })) ?? []);
+      draft.storeList = [{ title: 'All', id: '0' }].concat(
+        newSettings.stores?.map((name) => ({ id: name, title: name })) ?? [],
+      );
     });
   });
 

@@ -46,6 +46,7 @@ export const SearchComponent: React.FC<IProps> = ({
   storeSelectionList,
   selectedStore,
 }) => {
+  const numberOfActions = actions.length;
   const rows = useMemo(
     () =>
       actions.map(
@@ -69,7 +70,7 @@ export const SearchComponent: React.FC<IProps> = ({
           filterValue: `${row.id}`,
         }),
       ),
-    [actions],
+    [numberOfActions],
   );
 
   const [loading, setLoading] = useState(false);
