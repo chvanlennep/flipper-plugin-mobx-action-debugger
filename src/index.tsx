@@ -1,95 +1,87 @@
-import React, { useState } from 'react';
-import { PluginClient, usePlugin, createState, useValue, Layout } from 'flipper-plugin';
+import React, { useEffect, useRef, useState } from 'react';
+import { PluginClient, usePlugin, createState, useValue, Layout, createDataSource, uuid } from 'flipper-plugin';
 import { SearchComponent } from './SearchComponent';
 import { SidebarComponent } from './SidebarComponent';
 import { Events, Requests, Row, Settings } from './types';
 
 // API: https://fbflipper.com/docs/extending/flipper-plugin#pluginclient
 export function plugin(client: PluginClient<Events, Requests>) {
-  const data = createState<Row[]>([], { persist: 'data' });
-  const settings = createState<Settings>({ isAsyncStoragePresent: false, storeList: [] });
+  const allData = createDataSource<Row, 'id'>([], { key: 'id' });
+  const filteredData = createDataSource<Row, 'id'>([], { key: 'id' });
+  const settings = createState<Settings>({
+    isAsyncStoragePresent: false,
+    storeList: [{ title: 'All Stores', id: '0' }],
+  });
 
   client.onMessage('init', (newSettings) => {
     settings.update((draft) => {
       draft.isAsyncStoragePresent = newSettings.isAsyncStoragePresent;
-      draft.storeList = [{ title: 'All', id: '0' }].concat(
+      draft.storeList = [{ title: 'All Stores', id: '0' }].concat(
         newSettings.stores?.map((name) => ({ id: name, title: name })) ?? [],
       );
     });
   });
 
   client.onMessage('action', (newData) => {
-    data.update((draft) => {
-      draft.push(newData);
-      draft = draft.sort((a, b) => {
-        if (a.startTime < b.startTime) {
-          return -1;
-        }
-        if (a.startTime === b.startTime) {
-          return 0;
-        }
-        return 1;
-      });
-    });
+    allData.upsert({ ...newData, id: uuid() });
   });
-
-  const clear = () => {
-    data.set([]);
-  };
 
   const clearPersistedState = async () => {
     client.send('clearStorage', undefined);
   };
 
   return {
-    data,
+    filteredData,
+    allData,
     settings,
-    clear,
     clearPersistedState,
   };
 }
 
 // API: https://fbflipper.com/docs/extending/flipper-plugin#react-hooks
 export function Component() {
-  const instance = usePlugin(plugin);
-  const actions = useValue(instance.data);
-  const { isAsyncStoragePresent, storeList } = useValue(instance.settings);
+  const { filteredData, allData, settings, clearPersistedState } = usePlugin(plugin);
+  const { isAsyncStoragePresent, storeList } = useValue(settings);
+  const [selectedID, setSelectedID] = useState('');
+  const [selectedStore, setSelectedStore] = useState('0');
 
-  const [{ selectedId, selectedStore }, setState] = useState<{
-    selectedId: string;
-    selectedStore: string;
-  }>({ selectedId: '', selectedStore: '0' });
+  const oldSelection = useRef('0');
 
-  const onRowHighlighted = (key: string[]) => {
-    setState((old) => ({ ...old, selectedId: key[0] }));
-  };
-
-  const onStoreSelect = (storeName: string) => {
-    if (storeName !== selectedStore) {
-      setState((old) => ({ ...old, selectedStore: storeName }));
-    }
+  const onRowHighlighted = (row: Row | undefined) => {
+    setSelectedID(row?.id ?? '');
   };
 
   const clearData = () => {
-    instance.clear();
-    setState({ selectedStore: '0', selectedId: '' });
+    filteredData.clear();
+    allData.clear();
+    setSelectedStore('0');
+    setSelectedID('');
   };
 
-  const actionsToDisplay =
-    selectedStore === '0' ? actions : actions.filter(({ storeName }) => storeName === selectedStore);
+  useEffect(() => {
+    if (selectedStore !== '0' && selectedStore !== oldSelection.current) {
+      filteredData.clear();
+      allData.records().forEach((row) => {
+        if (row.storeName === selectedStore) {
+          filteredData.upsert(row);
+        }
+      });
+    }
+    oldSelection.current = selectedStore;
+  }, [selectedStore]);
 
   return (
     <Layout.Container grow={true}>
       <SearchComponent
-        actions={actionsToDisplay}
-        onPress={onRowHighlighted}
+        data={selectedStore === '0' ? allData : filteredData}
+        onSelect={onRowHighlighted}
         onClear={clearData}
-        onFilterSelect={onStoreSelect}
-        clearPersistedData={isAsyncStoragePresent ? instance.clearPersistedState : null}
+        onFilterSelect={setSelectedStore}
+        clearPersistedData={isAsyncStoragePresent ? clearPersistedState : null}
         storeSelectionList={storeList}
         selectedStore={selectedStore}
       />
-      <SidebarComponent selectedId={selectedId} actions={actions} />
+      <SidebarComponent selectedID={selectedID} actions={allData} />
     </Layout.Container>
   );
 }

@@ -9,6 +9,7 @@ export type Requests = {
 
 export type Row = {
   id: string;
+  actionName: string;
   action: {
     type: string;
     payload: any;

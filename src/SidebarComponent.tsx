@@ -1,16 +1,16 @@
 import React, { useState, useMemo } from 'react';
+import { DataInspector, DetailSidebar, Panel, Tabs, Tab, DataSource } from 'flipper-plugin';
+
 import { Row, TabLabel } from './types';
-import { DataInspector, DetailSidebar, Panel, Tabs, Tab } from 'flipper-plugin';
 
 interface IProps {
-  selectedId: string;
-  actions: Row[];
+  selectedID: string;
+  actions: DataSource<Row, string>;
 }
 
-export const SidebarComponent: React.FC<IProps> = ({ selectedId, actions }) => {
+export const SidebarComponent: React.FC<IProps> = ({ selectedID, actions }) => {
   const [activeTab, setActiveTab] = useState<string>(TabLabel.state);
-  const hasNoUsefulData = !actions.length || (actions.length === 1 && !actions[0].storeName);
-  const data = useMemo(() => actions.find((row) => row.id === selectedId), [selectedId, hasNoUsefulData]);
+  const data = useMemo(() => actions.getById(selectedID), [selectedID]);
 
   let after: any = {};
   let before: any = {};
@@ -22,10 +22,10 @@ export const SidebarComponent: React.FC<IProps> = ({ selectedId, actions }) => {
 
   return (
     <DetailSidebar>
-      <Panel title='Action'>
+      <Panel title='Action' pad='tiny'>
         <DataInspector data={action} collapsed={true} expandRoot={true} />
       </Panel>
-      <Panel title='State'>
+      <Panel title='State' pad='tiny'>
         <Tabs defaultActiveKey={activeTab} onChange={setActiveTab} activeKey={activeTab}>
           <Tab tab={TabLabel.state}>
             <DataInspector data={after} collapsed={true} expandRoot={true} />

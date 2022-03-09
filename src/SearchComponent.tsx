@@ -1,35 +1,36 @@
-import React, { useMemo, useState } from 'react';
-//@ts-ignore
-import { SearchableTable, TableBodyRow } from 'flipper';
-import { Button, Typography } from 'antd';
-import { DataList, Layout, Panel } from 'flipper-plugin';
+import React, { useState } from 'react';
+import { Button, Select, Typography } from 'antd';
+import { DataSource, DataTable, DataTableColumn, Dialog, Layout, Panel } from 'flipper-plugin';
+
 import { Row } from './types';
 
-const columns = {
-  time: {
-    value: 'Time',
+const columns: DataTableColumn<Row>[] = [
+  {
+    key: 'time',
+    title: 'Time',
+    width: '20%',
   },
-  store: {
-    value: 'Store',
+  {
+    key: 'storeName',
+    title: 'Store',
+    width: '20%',
   },
-  action: {
-    value: 'Action',
+  {
+    key: 'actionName',
+    title: 'Action',
+    width: '40%',
+    onRender: ({ action: { type } }) => <Typography.Text>{type}</Typography.Text>,
   },
-  took: {
-    value: 'Took',
+  {
+    key: 'took',
+    title: 'Took',
+    width: '20%',
   },
-};
-
-const columnSizes = {
-  time: '20%',
-  store: '20%',
-  action: '40%',
-  took: '20%',
-};
+];
 
 interface IProps {
-  actions: Row[];
-  onPress: (key: string[]) => void;
+  data: DataSource<Row, string>;
+  onSelect: (row: Row | undefined) => void;
   onClear: () => void;
   onFilterSelect: (newSelection: string) => void;
   clearPersistedData: (() => void) | null;
@@ -38,44 +39,17 @@ interface IProps {
 }
 
 export const SearchComponent: React.FC<IProps> = ({
-  actions,
-  onPress,
+  data,
+  onSelect,
   onClear,
   onFilterSelect,
   clearPersistedData,
   storeSelectionList,
   selectedStore,
 }) => {
-  const numberOfActions = actions.length;
-  const rows = useMemo(
-    () =>
-      actions.map(
-        (row): TableBodyRow => ({
-          columns: {
-            time: {
-              value: <Typography.Text>{row.time}</Typography.Text>,
-            },
-            store: {
-              value: <Typography.Text>{row.storeName}</Typography.Text>,
-            },
-            action: {
-              value: <Typography.Text>{row.action.type}</Typography.Text>,
-            },
-            took: {
-              value: <Typography.Text>{row.took}</Typography.Text>,
-            },
-          },
-          key: row.id,
-          copyText: JSON.stringify(row),
-          filterValue: `${row.id}`,
-        }),
-      ),
-    [numberOfActions],
-  );
-
   const [loading, setLoading] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async (): Promise<true> => {
     if (clearPersistedData) {
       setLoading(true);
       clearPersistedData();
@@ -83,34 +57,44 @@ export const SearchComponent: React.FC<IProps> = ({
         setLoading(false);
       }, 500);
     }
+    return true;
   };
 
   return (
     <Layout.Container grow>
-      <Panel title='Filter'>
-        <DataList
-          items={storeSelectionList}
-          onSelect={onFilterSelect}
-          selection={selectedStore}
-          style={{ minHeight: '230px' }}
-        />
+      <Panel title='Filter' pad='small' collapsible={false}>
+        <Select
+          value={selectedStore}
+          showSearch
+          placeholder='Select a store'
+          optionFilterProp='children'
+          onChange={onFilterSelect}
+          onSearch={onFilterSelect}
+          filterOption={(input, option) =>
+            (option?.children as unknown as string)?.toLowerCase().indexOf(input.toLowerCase()) >= 0
+          }>
+          {storeSelectionList.map(({ id, title }) => (
+            <Select.Option value={id}>{title}</Select.Option>
+          ))}
+        </Select>
       </Panel>
-      <SearchableTable
-        key={100}
-        rowLineHeight={28}
-        floating={false}
-        multiline
-        columnSizes={columnSizes}
+      <DataTable
+        dataSource={data}
         columns={columns}
-        onRowHighlighted={onPress}
-        multiHighlight={false}
-        rows={rows}
-        stickyBottom
-        actions={
+        onSelect={onSelect}
+        extraActions={
           <>
             <Button onClick={onClear}>Clear Logs</Button>
             {clearPersistedData ? (
-              <Button loading={loading} onClick={handleClick}>
+              <Button
+                loading={loading}
+                onClick={() => {
+                  Dialog.confirm({
+                    title: 'Wipe persisted stores?',
+                    message: <Typography>This will clear all persisted data related to stores.</Typography>,
+                    onConfirm: handleClick,
+                  });
+                }}>
                 Wipe Persisted Stores
               </Button>
             ) : null}
