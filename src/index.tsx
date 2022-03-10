@@ -70,6 +70,7 @@ export function Component() {
   const clearData = () => {
     clear();
     setSelectedID('');
+    setSelectedStore('0');
   };
 
   const handleStoreSelect = (newStore: string) => {
