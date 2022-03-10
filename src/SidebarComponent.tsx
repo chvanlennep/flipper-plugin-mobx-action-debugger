@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { DataInspector, DetailSidebar, Panel, Tabs, Tab, DataSource } from 'flipper-plugin';
 
 import { Row, TabLabel } from './types';
@@ -10,7 +10,7 @@ interface IProps {
 
 export const SidebarComponent: React.FC<IProps> = ({ selectedID, actions }) => {
   const [activeTab, setActiveTab] = useState<string>(TabLabel.state);
-  const data = useMemo(() => actions.getById(selectedID), [selectedID]);
+  const data = actions.getById(selectedID);
 
   let after: any = {};
   let before: any = {};
